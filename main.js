@@ -1,7 +1,18 @@
+function Player(name, mark){
+    this.name = name;
+    this.mark = mark;
+}
+
+Player.prototype.printMark = function(gameboard, position){
+    while (!gameboard.getBoard()[position]){
+        gameboard.setMark(position, this.mark);
+        break;
+    }
+}
+
 const gameboard = (() => {
     const board = new Array(9);
     let completedSet;
-
 
     const restoreBoard = () => board.fill(null);
 
@@ -59,11 +70,7 @@ const gameboard = (() => {
     }
 })();
 
-gameboard.restoreBoard();
 
-gameboard.setMark(1, "O");
-gameboard.setMark(4, "O");
-gameboard.setMark(7, "O");
-console.log(gameboard.getBoard());
-console.log(gameboard.getCompletedSet());
-console.log( gameboard.getWinningMark());
+const gameManager = (() => {
+    
+})();
