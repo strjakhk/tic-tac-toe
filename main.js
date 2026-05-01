@@ -1,6 +1,7 @@
 const gameboard = (() => {
     const board = new Array(9);
-    let set;
+    let completedSet;
+
 
     const restoreBoard = () => board.fill(null);
 
@@ -9,7 +10,7 @@ const gameboard = (() => {
             throw Error("Cell number to fill is invalid");    
         }
         
-        if (board[cell] === null && !set){
+        if (board[cell] === null && !completedSet){
             board[cell] = mark;
         }
 
@@ -17,32 +18,44 @@ const gameboard = (() => {
     }
 
     const verifySets = () => {
-        const [a, b, c, d, e, f, g, h, i] = board;
-        set = (
-            a == b && b == c && a != null ? [a,b,c] :
-            a == e && e == i && a != null ? [a,e,i] :
-            a == d && d == g && a != null ? [a,d,g] :
-            d == e && e == f && d != null ? [d,e,f] :
-            b == e && e == h && b != null ? [b,e,h] :
-            i == h && h == g && g != null ? [i,h,g] :
-            i == f && f == c && i != null ? [i,f,c] : null
-        );
+        const WIN_COMBINATIONS = [
+            [0, 1, 2],
+            [0, 4, 8],
+            [0, 3, 6],
+            [1, 4, 7],
+            [3, 4, 5],
+            [8, 7, 6],
+            [8, 5, 2],
+        ]
+
+        completedSet = WIN_COMBINATIONS.find(([a, b, c]) => {
+            if (
+                board[a] !== null &&
+                board[a] == board[b] &&
+                board[b] == board[c]
+            ){
+                return [a, b, c];
+            }
+        })
+
     }
 
-    const getSet = () => {
-        if (set){
-            return [...set];
-        }
-        return null;
+    const getBoard = () => [...board];
+
+    const getCompletedSet = () => {
+        return completedSet ? [...completedSet] : null;
     };
 
-    const getBoard = () => [...board];
+    const getWinningMark = () => {
+        return completedSet ? board[completedSet[0]] : null;
+    }
 
     return {
         restoreBoard,
         setMark,
-        getSet,
+        getCompletedSet,
         getBoard,
+        getWinningMark,
     }
 })();
 
@@ -52,4 +65,5 @@ gameboard.setMark(1, "O");
 gameboard.setMark(4, "O");
 gameboard.setMark(7, "O");
 console.log(gameboard.getBoard());
-console.log(gameboard.getSet());
+console.log(gameboard.getCompletedSet());
+console.log( gameboard.getWinningMark());
