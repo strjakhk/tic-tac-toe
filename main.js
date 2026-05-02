@@ -145,16 +145,13 @@ const gameManager = (() => {
         if (playing && !winningPlayer){
             if (players[turn].printMark(gameboard, position)){
                 if (gameboard.getWinningMark()){
-                    console.log(`WINNER: ${gameboard.getWinningMark()}`);
-                    players[turn].augmentScore();
-                    gameboard.restoreBoard();
+                    players[turn].incrementScore();
                     checkWinning();
                     toggleTurn();
                 }else{
                     toggleTurn();
                 }
             }
-            console.log(gameboard.getBoard());
         }
     }
 
@@ -176,12 +173,31 @@ const gameManager = (() => {
 
 })();
 
-gameManager.addPlayer("Juan", "X");
-gameManager.addPlayer("Martin", "O");
-gameManager.initGame();
+const displayComponent = (() => {
+    const renderBoard = (gameboard, parentNode) => {
+        parentNode.replaceChildren();
+        gameboard.getBoard().forEach((cell, index) => {
+            const cellElement = document.createElement("div");
+            cellElement.classList.add("cell");
+            cellElement.setAttribute("data-position", index);
+            cellElement.textContent = `${cell ? cell : ""}`;
 
-gameManager.play(0);
-gameManager.play(1);
-gameManager.play(3);
-gameManager.play(2);
-gameManager.play(6);
+            cellElement.addEventListener("click", () => {
+                gameManager.play(index);
+                displayComponent.renderBoard(gameboard, parentNode);
+            })
+            
+            parentNode.appendChild(cellElement);
+        })
+    }
+
+    return{
+        renderBoard,
+    }
+
+})();
+
+gameManager.addPlayer("harry", "X");
+gameManager.addPlayer("Ron", "O");
+gameManager.initGame();
+displayComponent.renderBoard(gameboard, document.querySelector(".board"));
