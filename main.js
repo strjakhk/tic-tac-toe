@@ -5,7 +5,7 @@ function makePlayer(name, mark){
     const getPlayerMark = () => mark;
     const getPlayerName = () => name;
     const getPlayerScore = () => score;
-    const augmentScore = () => {
+    const incrementScore = () => {
         score += 1;
     }
 
@@ -24,7 +24,7 @@ function makePlayer(name, mark){
         getPlayerMark,
         getPlayerName,
         getPlayerScore,
-        augmentScore,
+        incrementScore,
         printMark,
         resetScore,
     }
@@ -57,6 +57,7 @@ const gameboard = (() => {
             [3, 4, 5],
             [8, 7, 6],
             [8, 5, 2],
+            [4, 2, 8],
         ]
 
         completedSet = WIN_COMBINATIONS.find(([a, b, c]) => {
@@ -100,7 +101,6 @@ const gameManager = (() => {
     let winningPlayer;
 
     let turn = 0;
-    let toggleDirection = 1;
     
     const addPlayer = (name, mark) => {
         if (players.length <= 2){
@@ -112,18 +112,15 @@ const gameManager = (() => {
 
     const getTurn = () => {
         if (players[0]){
-            return players[turn].name;
+            return players[turn].getPlayerName();
         }
     };
 
     const toggleTurn = () => {
-        if (players[0]){
-            turn += toggleDirection;
-            toggleDirection *= -1;
-        }
+        turn = turn === 0 ? 1 : 0;
     }
 
-    const getWinningScore = () => score;
+    const getWinningScore = () => winningScore;
     const SetWinningScore = (score) => {
         if (score > 0 && score <= 10){
             winningScore = score;
@@ -148,7 +145,7 @@ const gameManager = (() => {
         if (playing && !winningPlayer){
             if (players[turn].printMark(gameboard, position)){
                 if (gameboard.getWinningMark()){
-                    console.log(`WINNER: ${gameManager.getWinningMark()}`);
+                    console.log(`WINNER: ${gameboard.getWinningMark()}`);
                     players[turn].augmentScore();
                     gameboard.restoreBoard();
                     checkWinning();
@@ -157,7 +154,7 @@ const gameManager = (() => {
                     toggleTurn();
                 }
             }
-            console.log(gameboard.getCompletedSet());
+            console.log(gameboard.getBoard());
         }
     }
 
@@ -171,4 +168,20 @@ const gameManager = (() => {
         playing = true;
     }
 
+    return{
+        initGame,
+        play,
+        addPlayer,
+    }
+
 })();
+
+gameManager.addPlayer("Juan", "X");
+gameManager.addPlayer("Martin", "O");
+gameManager.initGame();
+
+gameManager.play(0);
+gameManager.play(1);
+gameManager.play(3);
+gameManager.play(2);
+gameManager.play(6);
