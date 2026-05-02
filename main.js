@@ -1,12 +1,32 @@
-function Player(name, mark){
-    this.name = name;
-    this.mark = mark;
-}
+function makePlayer(name, mark){
 
-Player.prototype.printMark = function(gameboard, position){
-    while (!gameboard.getBoard()[position]){
-        gameboard.setMark(position, this.mark);
-        break;
+    let score = 0;
+
+    const getPlayerMark = () => mark;
+    const getPlayerName = () => name;
+    const getPlayerScore = () => score;
+    const augmentScore = () => {
+        score += 1;
+    }
+
+    const printMark = (gameboard, position) => {
+        if(!gameboard.getBoard()[position] && !gameboard.getWinningMark()){
+            gameboard.setMark(position, mark);
+            return true;
+        }else{
+            return false;
+        }
+    }
+
+    const resetScore = () => { score = 0; }
+
+    return {
+        getPlayerMark,
+        getPlayerName,
+        getPlayerScore,
+        augmentScore,
+        printMark,
+        resetScore,
     }
 }
 
@@ -71,6 +91,84 @@ const gameboard = (() => {
 })();
 
 
-const gameManager = (() => {
+const gameManager = (() => {    
+    const players = [];
+
+    let playing = false;
+
+    let winningScore = 3;
+    let winningPlayer;
+
+    let turn = 0;
+    let toggleDirection = 1;
     
+    const addPlayer = (name, mark) => {
+        if (players.length <= 2){
+            players.push(
+                makePlayer(name, mark)
+            );
+        }
+    }
+
+    const getTurn = () => {
+        if (players[0]){
+            return players[turn].name;
+        }
+    };
+
+    const toggleTurn = () => {
+        if (players[0]){
+            turn += toggleDirection;
+            toggleDirection *= -1;
+        }
+    }
+
+    const getWinningScore = () => score;
+    const SetWinningScore = (score) => {
+        if (score > 0 && score <= 10){
+            winningScore = score;
+        }
+    }
+
+    const checkWinning = () => {
+        players.forEach(player => {
+            if (player.getPlayerScore() === winningScore){
+                winningPlayer = player.name;
+            }else{
+                winningPlayer = null;   
+            }
+        })
+    }
+
+    const restoreScores = () => {
+        players.forEach(player => player.resetScore());
+    }
+
+    const play = (position) => {
+        if (playing && !winningPlayer){
+            if (players[turn].printMark(gameboard, position)){
+                if (gameboard.getWinningMark()){
+                    console.log(`WINNER: ${gameManager.getWinningMark()}`);
+                    players[turn].augmentScore();
+                    gameboard.restoreBoard();
+                    checkWinning();
+                    toggleTurn();
+                }else{
+                    toggleTurn();
+                }
+            }
+            console.log(gameboard.getCompletedSet());
+        }
+    }
+
+    const initGame = () => {        
+        if (players.length < 2){
+            throw Error("Cannot start the game if there are not 2 players");
+        }
+
+        restoreScores();
+        gameboard.restoreBoard();
+        playing = true;
+    }
+
 })();
