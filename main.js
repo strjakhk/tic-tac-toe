@@ -57,7 +57,7 @@ const gameboard = (() => {
             [3, 4, 5],
             [8, 7, 6],
             [8, 5, 2],
-            [4, 2, 8],
+            [2, 4, 6],
         ]
 
         completedSet = WIN_COMBINATIONS.find(([a, b, c]) => {
@@ -82,12 +82,22 @@ const gameboard = (() => {
         return completedSet ? board[completedSet[0]] : null;
     }
 
+    const restoreCompletedSet = () => {
+        completedSet = null;
+    }
+
+    const boardIsFull = () => {
+        return getBoard().every((cell) => cell)
+    }
+
     return {
         restoreBoard,
         setMark,
         getCompletedSet,
         getBoard,
         getWinningMark,
+        restoreCompletedSet,
+        boardIsFull,
     }
 })();
 
@@ -97,11 +107,15 @@ const gameManager = (() => {
 
     let playing = false;
 
-    let winningScore = 3;
+    let winningScore = 2;
     let winningPlayer;
 
     let turn = 0;
     
+    const getPlayers = () => {
+        return [...players];
+    }
+
     const addPlayer = (name, mark) => {
         if (players.length <= 2){
             players.push(
@@ -130,9 +144,7 @@ const gameManager = (() => {
     const checkWinning = () => {
         players.forEach(player => {
             if (player.getPlayerScore() === winningScore){
-                winningPlayer = player.name;
-            }else{
-                winningPlayer = null;   
+                winningPlayer = player.getPlayerName();
             }
         })
     }
@@ -142,40 +154,73 @@ const gameManager = (() => {
     }
 
     const play = (position) => {
-        if (playing && !winningPlayer){
+        if (playing){
             if (players[turn].printMark(gameboard, position)){
+                displayComponent.renderBoard(gameboard);
                 if (gameboard.getWinningMark()){
                     players[turn].incrementScore();
+                    displayComponent.highlightWinning();
                     checkWinning();
-                    toggleTurn();
-                }else{
-                    toggleTurn();
+                    if (!winningPlayer){
+                        setTimeout(() => {
+                            nextRound();
+                        }, 2000);
+                    }else{
+                        alert(`Congratulations, ${winningPlayer}\nyou won!`);
+                        winningPlayer = null;
+                        initGame();
+                    }
                 }
+                if (gameboard.boardIsFull()){
+                    nextRound();
+                }
+                toggleTurn();
             }
         }
     }
 
-    const initGame = () => {        
+    const getGameStatus = () => playing;
+
+    const initGame = () => {
         if (players.length < 2){
             throw Error("Cannot start the game if there are not 2 players");
         }
 
-        restoreScores();
         gameboard.restoreBoard();
+        gameboard.restoreCompletedSet();
+
+        restoreScores();
         playing = true;
+
+        displayComponent.renderBoard(gameboard);
+        displayComponent.updateStartButton();
+        displayComponent.updatePlayerScore();
+        displayComponent.updatePlayerName();
     }
+
+    const nextRound = () => {
+        toggleTurn();
+        gameboard.restoreBoard();
+        displayComponent.renderBoard(gameboard);
+        displayComponent.updatePlayerScore();
+    }
+
 
     return{
         initGame,
         play,
         addPlayer,
+        getPlayers,
+        getGameStatus,
     }
 
 })();
 
 const displayComponent = (() => {
-    const renderBoard = (gameboard, parentNode) => {
-        parentNode.replaceChildren();
+    const board = document.querySelector(".board");
+
+    const renderBoard = (gameboard) => {
+        board.replaceChildren();
         gameboard.getBoard().forEach((cell, index) => {
             const cellElement = document.createElement("div");
             cellElement.classList.add("cell");
@@ -184,20 +229,56 @@ const displayComponent = (() => {
 
             cellElement.addEventListener("click", () => {
                 gameManager.play(index);
-                displayComponent.renderBoard(gameboard, parentNode);
             })
             
-            parentNode.appendChild(cellElement);
+            board.appendChild(cellElement);
         })
+    }
+
+    const updatePlayerScore = () => {
+        gameManager.getPlayers().forEach((player, i) => {
+            document.querySelector(`#player-${i+1}-score`)
+            .textContent = `${player.getPlayerScore()}`;
+        });
+    }
+
+    const updateStartButton = () => {
+        document.querySelector("#start")
+        .textContent = `${gameManager.getGameStatus() ? "restart" : "start"}`;
+    }
+
+    const highlightWinning = () =>{
+        gameboard.getCompletedSet().forEach((cell) => {
+            document.querySelector(`.cell[data-position="${cell}"]`)
+            .classList.add("winning-cell");
+        });
+    }
+
+    const updatePlayerName = () => {
+        gameManager.getPlayers().forEach((player, i) => {
+            document.querySelector(`#player-${i+1}-name`)
+            .textContent = `${player.getPlayerName()}`;
+        });
     }
 
     return{
         renderBoard,
+        updatePlayerScore,
+        updateStartButton,
+        highlightWinning,
+        updatePlayerName,
     }
-
 })();
 
-gameManager.addPlayer("harry", "X");
-gameManager.addPlayer("Ron", "O");
-gameManager.initGame();
-displayComponent.renderBoard(gameboard, document.querySelector(".board"));
+displayComponent.renderBoard(gameboard);
+
+document.querySelector("#start").addEventListener("click", (e) => {
+    // temporally adding the two players manualy here
+    if (gameManager.getPlayers().length === 0){
+        gameManager.addPlayer("Juan", "O");
+        gameManager.addPlayer("Pablo", "X");
+    }
+    gameManager.initGame();
+});
+
+/* Event listeners */
