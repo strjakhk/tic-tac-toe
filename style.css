@@ -141,3 +141,7 @@ main > div[class*="info"]{
 
     font-size: 4rem;
 }
+
+.winning-cell{
+    color: greenyellow;
+}
