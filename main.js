@@ -280,5 +280,3 @@ document.querySelector("#start").addEventListener("click", (e) => {
     }
     gameManager.initGame();
 });
-
-/* Event listeners */
