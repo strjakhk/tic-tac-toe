@@ -275,8 +275,8 @@ displayComponent.renderBoard(gameboard);
 document.querySelector("#start").addEventListener("click", (e) => {
     // temporally adding the two players manualy here
     if (gameManager.getPlayers().length === 0){
-        gameManager.addPlayer("Juan", "O");
-        gameManager.addPlayer("Pablo", "X");
+        gameManager.addPlayer("Player O", "O");
+        gameManager.addPlayer("Player X", "X");
     }
     gameManager.initGame();
 });
